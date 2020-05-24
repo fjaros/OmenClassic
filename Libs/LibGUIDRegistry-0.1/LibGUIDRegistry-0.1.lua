@@ -102,7 +102,6 @@ end
 lib.frame:UnregisterAllEvents()
 lib.frame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 lib.frame:RegisterEvent("PLAYER_TARGET_CHANGED")
-lib.frame:RegisterEvent("PLAYER_FOCUS_CHANGED")
 lib.frame:RegisterEvent("RAID_TARGET_UPDATE")
 lib.frame:RegisterEvent("UNIT_CLASSIFICATION_CHANGED")
 lib.frame:RegisterEvent("UNIT_LEVEL")
@@ -130,18 +129,15 @@ local function processUnit(unitID, GUID, player)
 end
 
 function lib:ProcessActor(GUID, name, flags)
+	if not GUID or not name or not flags then
+		return
+	end
+
 	if update.target and bit_band(flags, COMBATLOG_OBJECT_TARGET) == COMBATLOG_OBJECT_TARGET then
 		update.target = nil
 		units.target = GUID
 		processUnit("target", GUID)
 		lib.callbacks:Fire("TargetGUIDSet", GUID)
-	end
-	
-	if update.focus and bit_band(flags, COMBATLOG_OBJECT_FOCUS) == COMBATLOG_OBJECT_FOCUS then
-		update.focus = nil
-		units.focus = GUID
-		processUnit("focus", GUID)
-		lib.callbacks:Fire("FocusGUIDSet", GUID)
 	end
 	
 	-- If they're in the party or raid...	
@@ -208,11 +204,7 @@ function lib:PLAYER_TARGET_CHANGED()
 	units.target = nil
 	update.target = true
 end
-function lib:PLAYER_FOCUS_CHANGED()
-	-- clear stored guid for 'focus'
-	units.focus = nil
-	update.focus = true
-end
+
 function lib:RAID_TARGET_UPDATE()
 	-- clear all stored guids for raidtargets
 	units["raidtarget1"] = nil
@@ -226,7 +218,7 @@ function lib:RAID_TARGET_UPDATE()
 end
 
 local function FlagForUpdate(self, unitID, ...)
-	if unitID == "target" or unitID == "focus" or unitID == "pet" or unitID == "player" then
+	if unitID == "target" or unitID == "pet" or unitID == "player" then
 		update[unitID] = true
 	elseif UnitIsPlayer(unitID) and UnitPlayerOrPetInParty(unitID) and UnitPlayerOrPetInRaid(unitID) then
 		update[UnitName(unitID)] = true

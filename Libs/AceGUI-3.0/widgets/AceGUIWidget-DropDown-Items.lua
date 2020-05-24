@@ -1,6 +1,13 @@
---[[ $Id: AceGUIWidget-DropDown-Items.lua 666 2008-06-09 09:29:17Z nevcairiel $ ]]--
+--[[ $Id: AceGUIWidget-DropDown-Items.lua 1192 2018-07-30 18:03:51Z funkydude $ ]]--
 
 local AceGUI = LibStub("AceGUI-3.0")
+
+-- Lua APIs
+local select, assert = select, assert
+
+-- WoW APIs
+local PlaySound = PlaySound
+local CreateFrame = CreateFrame
 
 local function fixlevels(parent,...)
 	local i = 1
@@ -162,7 +169,7 @@ function ItemBase.Create(type)
 	self.text = text
 
 	local highlight = frame:CreateTexture(nil, "OVERLAY")
-	highlight:SetTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
+	highlight:SetTexture(136810) -- Interface\\QuestFrame\\UI-QuestTitleHighlight
 	highlight:SetBlendMode("ADD")
 	highlight:SetHeight(14)
 	highlight:ClearAllPoints()
@@ -175,7 +182,7 @@ function ItemBase.Create(type)
 	check:SetWidth(16)
 	check:SetHeight(16)
 	check:SetPoint("LEFT",frame,"LEFT",3,-1)
-	check:SetTexture("Interface\\Buttons\\UI-CheckBox-Check")
+	check:SetTexture(130751) -- Interface\\Buttons\\UI-CheckBox-Check
 	check:Hide()
 	self.check = check
 
@@ -183,7 +190,7 @@ function ItemBase.Create(type)
 	sub:SetWidth(16)
 	sub:SetHeight(16)
 	sub:SetPoint("RIGHT",frame,"RIGHT",-3,-1)
-	sub:SetTexture("Interface\\ChatFrame\\ChatFrameExpandArrow")
+	sub:SetTexture(130940) -- Interface\\ChatFrame\\ChatFrameExpandArrow
 	sub:Hide()
 	self.sub = sub	
 	
@@ -206,6 +213,12 @@ function ItemBase.Create(type)
 	self.SetOnEnter = ItemBase.SetOnEnter
 	
 	return self
+end
+
+-- Register a dummy LibStub library to retrieve the ItemBase, so other addons can use it.
+local IBLib = LibStub:NewLibrary("AceGUI-3.0-DropDown-ItemBase", ItemBase.version)
+if IBLib then
+	IBLib.GetItemBase = function() return ItemBase end
 end
 
 --[[
@@ -310,7 +323,7 @@ end
 -- Does not close the pullout on click.
 do
 	local widgetType = "Dropdown-Item-Toggle"
-	local widgetVersion = 2
+	local widgetVersion = 4
 	
 	local function UpdateToggle(self)
 		if self.value then
@@ -329,6 +342,11 @@ do
 		local self = this.obj
 		if self.disabled then return end
 		self.value = not self.value
+		if self.value then
+			PlaySound(856) -- SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON
+		else
+			PlaySound(857) -- SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF
+		end
 		UpdateToggle(self)
 		self:Fire("OnValueChanged", self.value)
 	end
@@ -365,7 +383,7 @@ end
 -- Does not close the pullout on click
 do
 	local widgetType = "Dropdown-Item-Menu"
-	local widgetVersion = 1
+	local widgetVersion = 2
 	
 	local function OnEnter(this)
 		local self = this.obj
@@ -390,13 +408,13 @@ do
 	end
 	
 	-- exported
-	function SetMenu(self, menu)
+	local function SetMenu(self, menu)
 		assert(menu.type == "Dropdown-Pullout")
 		self.submenu = menu
 	end
 		
 	-- exported
-	function CloseMenu(self)
+	local function CloseMenu(self)
 		self.submenu:Close()
 	end
 		
@@ -422,7 +440,7 @@ end
 -- A single line to separate items
 do
 	local widgetType = "Dropdown-Item-Separator"
-	local widgetVersion = 1
+	local widgetVersion = 2
 	
 	-- exported, override
 	local function SetDisabled(self, disabled)
@@ -437,7 +455,7 @@ do
 		
 		local line = self.frame:CreateTexture(nil, "OVERLAY")
 		line:SetHeight(1)
-		line:SetTexture(.5, .5, .5)
+		line:SetColorTexture(.5, .5, .5)
 		line:SetPoint("LEFT", self.frame, "LEFT", 10, 0)
 		line:SetPoint("RIGHT", self.frame, "RIGHT", -10, 0)
 		
