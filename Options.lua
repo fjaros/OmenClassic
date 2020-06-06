@@ -82,8 +82,9 @@ local optionDefaults = {
 		["WARLOCK"] = true, 
 		["WARRIOR"] = true
 	},
-	FuBar = {
-		HideMinimapButton = false
+	minimapIcon = {
+		["showIcon"] = true,
+		["showText"] = true
 	}
 }
 

@@ -1,34 +1,38 @@
---[[
-AceConfigRegistry-3.0:
+--- AceConfigRegistry-3.0 handles central registration of options tables in use by addons and modules.\\
+-- Options tables can be registered as raw tables, OR as function refs that return a table.\\
+-- Such functions receive three arguments: "uiType", "uiName", "appName". \\
+-- * Valid **uiTypes**: "cmd", "dropdown", "dialog". This is verified by the library at call time. \\
+-- * The **uiName** field is expected to contain the full name of the calling addon, including version, e.g. "FooBar-1.0". This is verified by the library at call time.\\
+-- * The **appName** field is the options table name as given at registration time \\
+-- 
+-- :IterateOptionsTables() (and :GetOptionsTable() if only given one argument) return a function reference that the requesting config handling addon must call with valid "uiType", "uiName".
+-- @class file
+-- @name AceConfigRegistry-3.0
+-- @release $Id: AceConfigRegistry-3.0.lua 1169 2018-02-27 16:18:28Z nevcairiel $
+local CallbackHandler = LibStub("CallbackHandler-1.0")
 
-Handle central registration of options tables in use by addons and modules. Do nothing else.
+local MAJOR, MINOR = "AceConfigRegistry-3.0", 18
+local AceConfigRegistry = LibStub:NewLibrary(MAJOR, MINOR)
 
-Options tables can be registered as raw tables, or as function refs that return a table.
-These functions receive two arguments: "uiType" and "uiName". 
-- Valid "uiTypes": "cmd", "dropdown", "dialog". This is verified by the library at call time.
-- The "uiName" field is expected to contain the full name of the calling addon, including version, e.g. "FooBar-1.0". This is verified by the library at call time.
+if not AceConfigRegistry then return end
 
-:IterateOptionsTables() and :GetOptionsTable() always return a function reference that the requesting config handling addon must call with the above arguments.
-]]
+AceConfigRegistry.tables = AceConfigRegistry.tables or {}
 
-local MAJOR, MINOR = "AceConfigRegistry-3.0", 6
-local lib = LibStub:NewLibrary(MAJOR, MINOR)
-
-if not lib then return end
-
-lib.tables = lib.tables or {}
-
-local CallbackHandler = LibStub:GetLibrary("CallbackHandler-1.0")
-
-if not lib.callbacks then
-	lib.callbacks = CallbackHandler:New(lib)
+if not AceConfigRegistry.callbacks then
+	AceConfigRegistry.callbacks = CallbackHandler:New(AceConfigRegistry)
 end
+
+-- Lua APIs
+local tinsert, tconcat = table.insert, table.concat
+local strfind, strmatch = string.find, string.match
+local type, tostring, select, pairs = type, tostring, select, pairs
+local error, assert = error, assert
 
 -----------------------------------------------------------------------
 -- Validating options table consistency:
 
 
-lib.validated = {
+AceConfigRegistry.validated = {
 	-- list of options table names ran through :ValidateOptionsTable automatically. 
 	-- CLEARED ON PURPOSE, since newer versions may have newer validators
 	cmd = {},
@@ -43,7 +47,7 @@ local function err(msg, errlvl, ...)
 	for i=select("#",...),1,-1 do
 		tinsert(t, (select(i, ...)))
 	end
-	error(MAJOR..":ValidateOptionsTable(): "..table.concat(t,".")..msg, errlvl+2)
+	error(MAJOR..":ValidateOptionsTable(): "..tconcat(t,".")..msg, errlvl+2)
 end
 
 
@@ -53,6 +57,7 @@ local istable={["table"]=true,   _="table"}
 local ismethodtable={["table"]=true,["string"]=true,["function"]=true,   _="methodname, funcref or table"}
 local optstring={["nil"]=true,["string"]=true, _="string"}
 local optstringfunc={["nil"]=true,["string"]=true,["function"]=true, _="string or funcref"}
+local optstringnumberfunc={["nil"]=true,["string"]=true,["number"]=true,["function"]=true, _="string, number or funcref"}
 local optnumber={["nil"]=true,["number"]=true, _="number"}
 local optmethod={["nil"]=true,["string"]=true,["function"]=true, _="methodname or funcref"}
 local optmethodfalse={["nil"]=true,["string"]=true,["function"]=true,["boolean"]={[false]=true},  _="methodname, funcref or false"}
@@ -62,11 +67,13 @@ local optmethodbool={["nil"]=true,["string"]=true,["function"]=true,["boolean"]=
 local opttable={["nil"]=true,["table"]=true,  _="table"}
 local optbool={["nil"]=true,["boolean"]=true,  _="boolean"}
 local optboolnumber={["nil"]=true,["boolean"]=true,["number"]=true,  _="boolean or number"}
+local optstringnumber={["nil"]=true,["string"]=true,["number"]=true, _="string or number"}
 
 local basekeys={
 	type=isstring,
 	name=isstringfunc,
 	desc=optstringfunc,
+	descStyle=optstring,
 	order=optmethodnumber,
 	validate=optmethodfalse,
 	confirm=optmethodbool,
@@ -77,23 +84,24 @@ local basekeys={
 		dialogHidden=optmethodbool,
 		dropdownHidden=optmethodbool,
 	cmdHidden=optmethodbool,
-	icon=optstringfunc,
+	icon=optstringnumberfunc,
 	iconCoords=optmethodtable,
 	handler=opttable,
 	get=optmethodfalse,
 	set=optmethodfalse,
 	func=optmethodfalse,
 	arg={["*"]=true},
-	width=optstring,
+	width=optstringnumber,
 }
 
 local typedkeys={
 	header={},
 	description={
-		image=optstringfunc,
+		image=optstringnumberfunc,
 		imageCoords=optmethodtable,
 		imageHeight=optnumber,
 		imageWidth=optnumber,
+		fontSize=optstringfunc,
 	},
 	group={
 		args=istable,
@@ -106,11 +114,10 @@ local typedkeys={
 		childGroups=optstring,
 	},
 	execute={
---		func={
---			["function"]=true,
---			["string"]=true, 
---			_="methodname or funcref"
---		},
+		image=optstringnumberfunc,
+		imageCoords=optmethodtable,
+		imageHeight=optnumber,
+		imageWidth=optnumber,
 	},
 	input={
 		pattern=optstring,
@@ -122,12 +129,16 @@ local typedkeys={
 	},
 	toggle={
 		tristate=optbool,
+		image=optstringnumberfunc,
+		imageCoords=optmethodtable,
 	},
 	tristate={
 	},
 	range={
 		min=optnumber,
+		softMin=optnumber,
 		max=optnumber,
+		softMax=optnumber,
 		step=optnumber,
 		bigStep=optnumber,
 		isPercent=optbool,
@@ -142,6 +153,7 @@ local typedkeys={
 		control=optstring,
 		dialogControl=optstring,
 		dropdownControl=optstring,
+		itemControl=optstring,
 	},
 	multiselect={
 		values=ismethodtable,
@@ -152,7 +164,7 @@ local typedkeys={
 		dropdownControl=optstring,
 	},
 	color={
-		hasAlpha=optbool,
+		hasAlpha=optmethodbool,
 	},
 	keybinding={
 		-- TODO
@@ -164,8 +176,8 @@ local function validateKey(k,errlvl,...)
 	if type(k)~="string" then
 		err("["..tostring(k).."] - key is not a string", errlvl,...)
 	end
-	if strfind(k, "[%c \127]") then
-		err("["..tostring(k).."] - key name contained spaces (or control characters)", errlvl,...)
+	if strfind(k, "[%c\127]") then
+		err("["..tostring(k).."] - key name contained control characters", errlvl,...)
 	end
 end
 
@@ -234,16 +246,13 @@ local function validate(options,errlvl,...)
 	end
 end
 
----------------------------------------------------------------------
--- :ValidateOptionsTable(options,name,errlvl)
--- - options - the table
--- - name    - (string) name of table, used in error reports
--- - errlvl  - (optional number) error level offset, default 0
---
--- Validates basic structure and integrity of an options table
--- Does NOT verify that get/set etc actually exist, since they can be defined at any depth
 
-function lib:ValidateOptionsTable(options,name,errlvl)
+--- Validates basic structure and integrity of an options table \\
+-- Does NOT verify that get/set etc actually exist, since they can be defined at any depth
+-- @param options The table to be validated
+-- @param name The name of the table to be validated (shown in any error message)
+-- @param errlvl (optional number) error level offset, default 0 (=errors point to the function calling :ValidateOptionsTable)
+function AceConfigRegistry:ValidateOptionsTable(options,name,errlvl)
 	errlvl=(errlvl or 0)+1
 	name = name or "Optionstable"
 	if not options.name then
@@ -252,19 +261,16 @@ function lib:ValidateOptionsTable(options,name,errlvl)
 	validate(options,errlvl,name)
 end
 
-------------------------------
--- :NotifyChange(appName)
--- - appName - string identifying the addon
---
--- Fires a ConfigTableChange callback for those listening in on it, allowing config GUIs to refresh
-------------------------------
-
-function lib:NotifyChange(appName)
-	if not lib.tables[appName] then return end
-	lib.callbacks:Fire("ConfigTableChange", appName)
+--- Fires a "ConfigTableChange" callback for those listening in on it, allowing config GUIs to refresh.
+-- You should call this function if your options table changed from any outside event, like a game event
+-- or a timer.
+-- @param appName The application name as given to `:RegisterOptionsTable()`
+function AceConfigRegistry:NotifyChange(appName)
+	if not AceConfigRegistry.tables[appName] then return end
+	AceConfigRegistry.callbacks:Fire("ConfigTableChange", appName)
 end
 
----------------------------------------------------------------------
+-- -------------------------------------------------------------------
 -- Registering and retreiving options tables:
 
 
@@ -280,34 +286,33 @@ local function validateGetterArgs(uiType, uiName, errlvl)
 	end
 end
 
-
----------------------------------------------------------------------
--- :RegisterOptionsTable(appName, options)
--- - appName - string identifying the addon
--- - options - table or function reference
-
-function lib:RegisterOptionsTable(appName, options)
+--- Register an options table with the config registry.
+-- @param appName The application name as given to `:RegisterOptionsTable()`
+-- @param options The options table, OR a function reference that generates it on demand. \\
+-- See the top of the page for info on arguments passed to such functions.
+-- @param skipValidation Skip options table validation (primarily useful for extremely huge options, with a noticeable slowdown)
+function AceConfigRegistry:RegisterOptionsTable(appName, options, skipValidation)
 	if type(options)=="table" then
 		if options.type~="group" then	-- quick sanity checker
 			error(MAJOR..": RegisterOptionsTable(appName, options): 'options' - missing type='group' member in root group", 2)
 		end
-		lib.tables[appName] = function(uiType, uiName, errlvl)
+		AceConfigRegistry.tables[appName] = function(uiType, uiName, errlvl)
 			errlvl=(errlvl or 0)+1
 			validateGetterArgs(uiType, uiName, errlvl)
-			if not lib.validated[uiType][appName] then
-				lib:ValidateOptionsTable(options, appName, errlvl)	-- upgradable
-				lib.validated[uiType][appName] = true
+			if not AceConfigRegistry.validated[uiType][appName] and not skipValidation then
+				AceConfigRegistry:ValidateOptionsTable(options, appName, errlvl)	-- upgradable
+				AceConfigRegistry.validated[uiType][appName] = true
 			end
 			return options 
 		end
 	elseif type(options)=="function" then
-		lib.tables[appName] = function(uiType, uiName, errlvl)
+		AceConfigRegistry.tables[appName] = function(uiType, uiName, errlvl)
 			errlvl=(errlvl or 0)+1
 			validateGetterArgs(uiType, uiName, errlvl)
-			local tab = assert(options(uiType, uiName))
-			if not lib.validated[uiType][appName] then
-				lib:ValidateOptionsTable(tab, appName, errlvl)	-- upgradable
-				lib.validated[uiType][appName] = true
+			local tab = assert(options(uiType, uiName, appName))
+			if not AceConfigRegistry.validated[uiType][appName] and not skipValidation then
+				AceConfigRegistry:ValidateOptionsTable(tab, appName, errlvl)	-- upgradable
+				AceConfigRegistry.validated[uiType][appName] = true
 			end
 			return tab
 		end
@@ -316,30 +321,23 @@ function lib:RegisterOptionsTable(appName, options)
 	end
 end
 
-
----------------------------------------------------------------------
--- :IterateOptionsTables()
---
--- Returns an iterator of ["appName"]=funcref pairs
-
-function lib:IterateOptionsTables()
-	return pairs(lib.tables)
+--- Returns an iterator of ["appName"]=funcref pairs
+function AceConfigRegistry:IterateOptionsTables()
+	return pairs(AceConfigRegistry.tables)
 end
 
 
----------------------------------------------------------------------
--- :GetOptionsTable(appName)
--- - appName - which addon to retreive the options table of
--- Optional:
--- - uiType - "cmd", "dropdown", "dialog"
--- - uiName - e.g. "MyLib-1.0"
---
--- If only appName is given, a function is returned which you
--- can call with (uiType,uiName) to get the table.
--- If uiType&uiName are given, the table is returned.
 
-function lib:GetOptionsTable(appName, uiType, uiName)
-	local f = lib.tables[appName]
+
+--- Query the registry for a specific options table.
+-- If only appName is given, a function is returned which you
+-- can call with (uiType,uiName) to get the table.\\
+-- If uiType&uiName are given, the table is returned.
+-- @param appName The application name as given to `:RegisterOptionsTable()`
+-- @param uiType The type of UI to get the table for, one of "cmd", "dropdown", "dialog"
+-- @param uiName The name of the library/addon querying for the table, e.g. "MyLib-1.0"
+function AceConfigRegistry:GetOptionsTable(appName, uiType, uiName)
+	local f = AceConfigRegistry.tables[appName]
 	if not f then
 		return nil
 	end

@@ -5,8 +5,4 @@ if not L then return end
 L["Healer Mode"] = true
 L["Column Spacing"] = true
 
-L["Data source"] = true
-L["Get tanks from..."] = true
-L["oRA2 Main Tanks"] = true
-L["Blizzard Main Tanks"] = true
-L["Healer Mode\n|cffffffffShows an overview of tank target threat\nTank targets come from oRA2 or the Blizzard tank settings.|r"] = true
+L["Healer Mode\n|cffffffffShows an overview of threat for mobs tagged by Main Tank roles|r"] = true

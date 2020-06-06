@@ -2,7 +2,7 @@ local MINOR_VERSION = tonumber(("$Revision: 78713 $"):match("%d+"))
 if MINOR_VERSION > Omen.MINOR_VERSION then Omen.MINOR_VERSION = MINOR_VERSION end
 
 local Media = LibStub("LibSharedMedia-3.0")
-local Threat = LibStub("Threat-2.0")
+local Threat = LibStub("LibThreatClassic2")
 local tinsert = _G.tinsert
 local tremove = _G.tremove
 local min, max = _G.min, _G.max

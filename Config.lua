@@ -2,7 +2,7 @@ local MINOR_VERSION = tonumber(("$Revision: 78700 $"):match("%d+"))
 if MINOR_VERSION > Omen.MINOR_VERSION then Omen.MINOR_VERSION = MINOR_VERSION end
 
 local L = LibStub("AceLocale-3.0"):GetLocale("Omen")
-local Threat = LibStub("Threat-2.0")
+local Threat = LibStub("LibThreatClassic2")
 local Media = LibStub("LibSharedMedia-3.0")
 local textures = Media:List("statusbar")
 local fonts = Media:List("font")
@@ -20,10 +20,6 @@ local function GetLSMIndex(t, value)
 		end
 	end
 	return nil
-end
-
-local function GetFuBarMinimapAttachedStatus(info)
-	return Omen:IsFuBarMinimapAttached() or Omen.Options["FuBar.HideMinimapButton"]
 end
 
 function Omen:InjectFrameOptions(f, t)
@@ -138,10 +134,7 @@ local options = {
 					Omen:Disable()
 				else
 					Omen:Enable()
-					if Omen:IsFuBarMinimapAttached() ~= Omen.Options["FuBar.AttachMinimap"] then
-						Omen:ToggleFuBarMinimapAttached()
-					end
-					
+					Omen:ToggleMinimapIcon(Omen.Options["minimapIcon.showIcon"] or true)
 				end
 			end,
 			guiHidden = true
@@ -282,66 +275,34 @@ local options = {
 				}
 			},
 		},
-		fubar = {
+		minimapIcon = {
 			type = "group",
-			name = L["FuBar options"],
-			desc = L["FuBar options"],
-			disabled = function() return Omen.IsFuBarMinimapAttached == nil end,
+			name = L["Minimap options"],
+			desc = L["Minimap options"],
+			disabled = function() return not Omen:HasMinimapIcon() end,
 			args = {
-				attachMinimap = {
-					type = "toggle",
-					name = L["Attach to minimap"],
-					desc = L["Attach to minimap"],
-					get = function(info)
-						return Omen:IsFuBarMinimapAttached()
-					end,
-					set = function(info, v)
-						Omen:ToggleFuBarMinimapAttached()
-						Omen.Options["FuBar.AttachMinimap"] = Omen:IsFuBarMinimapAttached()
-					end
-				},
-				hideIcon = {
-					type = "toggle",
-					name = L["Hide minimap/FuBar icon"],
-					desc = L["Hide minimap/FuBar icon"],
-					get = function(info) return Omen.Options["FuBar.HideMinimapButton"] end,
-					set = function(info, v)
-						Omen.Options["FuBar.HideMinimapButton"] = v
-						if v then
-							Omen:Hide()
-						else
-							Omen:Show()
-						end
-					end
-				},
 				showIcon = {
 					type = "toggle",
 					name = L["Show icon"],
 					desc = L["Show icon"],
-					get = function(info) return Omen:IsFuBarIconShown() end,
-					set = function(info, v) Omen:ToggleFuBarIconShown() end,
-					disabled = GetFuBarMinimapAttachedStatus
+					get = function(info) return Omen:IsMinimapIconShown() end,
+					set = function(info, v) 
+						Omen.Options["minimapIcon.showIcon"] = v
+						if v then
+							Omen:ShowMinimapIcon()
+						else
+							Omen:HideMinimapIcon()
+						end
+					end,
+					disabled = function() return not Omen:HasMinimapIcon() end
 				},
 				showText = {
 					type = "toggle",
 					name = L["Show text"],
 					desc = L["Show text"],
-					get = function(info) return Omen:IsFuBarTextShown() end,
-					set = function(info, v) Omen:ToggleFuBarTextShown() end,
-					disabled = GetFuBarMinimapAttachedStatus
-				},
-				position = {
-					type = "select",
-					name = L["Position"],
-					desc = L["Position"],
-					values = {LEFT = L["Left"], CENTER = L["Center"], RIGHT = L["Right"]},
-					get = function() return Omen:GetPanel() and Omen:GetPanel():GetPluginSide(Omen) end,
-					set = function(info, val)
-						if Omen:GetPanel() and Omen:GetPanel().SetPluginSide then
-							Omen:GetPanel():SetPluginSide(Omen, val)
-						end
-					end,
-					disabled = GetFuBarMinimapAttachedStatus
+					get = function(info) return Omen.Options["minimapIcon.showText"] end,
+					set = function(info, v) Omen.Options["minimapIcon.showText"] = v end,
+					disabled = function() return not Omen:HasMinimapIcon() end
 				}
 			}
 		},

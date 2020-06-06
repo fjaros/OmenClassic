@@ -2,7 +2,7 @@ local MINOR_VERSION = tonumber(("$Revision: 74823 $"):match("%d+"))
 if MINOR_VERSION > Omen.MINOR_VERSION then Omen.MINOR_VERSION = MINOR_VERSION end
 
 local columns = {}
-local Threat = LibStub("Threat-2.0")
+local Threat = LibStub("LibThreatClassic2")
 local table_sort = _G.table.sort
 local math_abs = _G.math.abs
 local OL = LibStub("AceLocale-3.0"):GetLocale("Omen")
@@ -12,12 +12,12 @@ local pairs, select = _G.pairs, _G.select
 local tremove, tinsert = _G.tremove, _G.tinsert
 
 local Healer = Omen:NewModule("Healer", Omen.ModuleBase, "AceEvent-3.0", "AceTimer-3.0")
+local tankGuids = {}
 
 local configOptions = {
 	Column = {
 		Spacing = 4
-	},
-	Source = "oRA2"
+	}
 }
 
 local options = {
@@ -30,38 +30,6 @@ local options = {
 			name = OL["Show test bars"],
 			desc = OL["Show test bars"],
 			func = function() Omen:EnableModule("Healer") Healer:Test() end
-		},
-		tanksource = {
-			type = "group",
-			name = L["Data source"],
-			desc = L["Get tanks from..."],
-			args = {
-				ora = {
-					type = "toggle",
-					name = L["oRA2 Main Tanks"],
-					desc = L["oRA2 Main Tanks"],
-					get = function() return Healer:GetOption("Source") == "oRA2" end,
-					set = function(info, v)
-						if v then
-							Healer:SetOption("Source", "oRA2")
-							Healer:SetMTSource("oRA2")
-						end
-					end,
-					disabled = function() return oRA == nil end
-				},
-				blizzard = {
-					type = "toggle",
-					name = L["Blizzard Main Tanks"],
-					desc = L["Blizzard Main Tanks"],
-					get = function() return Healer:GetOption("Source") == "Blizzard" end,
-					set = function(info, v)
-						if v then
-							Healer:SetOption("Source", "Blizzard")
-							Healer:SetMTSource("Blizzard")
-						end
-					end
-				}
-			}
 		},
 		spacing = {
 			type = "range",
@@ -89,22 +57,16 @@ local function sortBars(a, b)
 	return a.value > b.value
 end
 
-local oRA2Listener = {}
-
 function Healer:OnInitialize()
 	self:Super("OnInitialize")
 	self.icon = select(3, GetSpellInfo(71))
 	self:RegisterConfigDefaults(configOptions)
 	self:RegisterOptions(options)
 	self:SetColumnSpacing(self:GetOption("Column.Spacing"))
-	
-	if AceLibrary and AceLibrary:HasInstance("AceEvent-2.0") then
-		AceLibrary("AceEvent-2.0"):embed(oRA2Listener)
-	end
 end
 
 function Healer:Hint()
-	return L["Healer Mode\n|cffffffffShows an overview of tank target threat\nTank targets come from oRA2 or the Blizzard tank settings.|r"]
+	return L["Healer Mode\n|cffffffffShows an overview of threat for mobs tagged by Main Tank roles|r"]
 end
 
 function Healer:UpdateLayout()
@@ -118,7 +80,8 @@ function Healer:OnEnable()
 	self:ClearBars()
 	self:ClearColumns()
 	self:RegisterEvent("UNIT_TARGET")
-	self:SetMTSource(self:GetOption("Source"))
+	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+	self:WatchBlizzard()
 end
 
 function Healer:OnDisable()
@@ -136,6 +99,33 @@ end
 
 local lastUpdateTime = 0
 function Healer:UpdateBar(srcGUID, tankGUID, dstGUID, threat, column, overrideMax)
+	-- Ignore if blacklisted
+	if GuidBlacklist:Has(dstGUID) then
+		return
+	end
+	
+	-- Ignore if creature guid is not resolvable
+	if not Threat.GUIDNameLookup[dstGuid] or Threat.GUIDNameLookup[dstGuid] == "<unknown>" then
+		return
+	end
+	
+	-- If unit is in range and not in combat, but reporting a guid, then blacklist it
+	if UnitInRange(Threat.GUIDNameLookup[srcGUID]) and not UnitAffectingCombat(Threat.GUIDNameLookup[srcGUID]) then
+		GuidBlacklist:Add(dstGUID)
+		self:RemoveTank(dstGUID)
+		return
+	end
+
+	-- If threat comes from a creature we definitely know is not in the zone, ignore it.
+	if string.sub(dstGUID, 1, 9) == "Creature-" then
+		local pInstanceId, _ = select(8, GetInstanceInfo())
+		local cInstanceId, _ = select(4, strsplit("-", dstGUID))
+		if tonumber(pInstanceId) ~= tonumber(cInstanceId) then
+			-- Creature initiating is not in the same instance as the player. Ignore
+			return
+		end
+	end
+
 	local bar, isNew = self:AcquireBar(srcGUID .. "-" .. tankGUID)
 	columns[column] = columns[column] or {}
 
@@ -160,7 +150,7 @@ function Healer:UpdateBar(srcGUID, tankGUID, dstGUID, threat, column, overrideMa
 	end
 
 	bar.value = pct
-	if GetTime() - lastUpdateTime > 0.25 then
+	if GetTime() - lastUpdateTime > 0.1 then
 		lastUpdateTime = GetTime()
 		self:ArrangeBars()
 	end
@@ -222,12 +212,7 @@ function Healer:ThreatUpdated(event, srcGUID, dstGUID, threat)
 	if self.testing then
 		self:ReleaseBars()
 		self.testing = false
-		local source = self:GetOption("Source")
-		if source == "oRA2" then
-			self:oRAUpdateMainTanks()
-		elseif source == "Blizzard" then
-			self:GetBlizzardTanks()
-		end
+		self:GetBlizzardTanks()
 	end
 	for k, v in pairs(tankPositions) do
 		if dstGUID == UnitGUID(tankGUIDs[k] .. "-target") then
@@ -325,27 +310,12 @@ function Healer:UNIT_TARGET(event, unit)
 	if self.testing then
 		self:ReleaseBars()
 		self.testing = false
-		local source = self:GetOption("Source")
-		if source == "oRA2" then
-			self:oRAUpdateMainTanks()
-		elseif source == "Blizzard" then
-			self:GetBlizzardTanks()
-		end
+		self:GetBlizzardTanks()
 	end
 	if tankPositions[UnitGUID(unit)] then
 		self:UpdateThreatOnTank(unit)
 	end
 end
-
-function Healer:SetMTSource(source)
-	if source == "oRA2" then
-		self:WatchORA()
-	elseif source == "Blizzard" then
-		self:WatchBlizzard()
-	end
-end
-
--- blizzard compat
 
 function Healer:WatchBlizzard()
 	self:RegisterEvent("RAID_ROSTER_UPDATE")
@@ -356,48 +326,30 @@ function Healer:RAID_ROSTER_UPDATE()
 	self:GetBlizzardTanks()
 end
 
+-- Permanently blacklist any creature that dies. Unless it is resurrected, then whitelist it. Although I have no idea how/if that works.
+function Healer:COMBAT_LOG_EVENT_UNFILTERED()
+	local _, event, _, _, _, _, _, guid, name = CombatLogGetCurrentEventInfo()
+	if not string.sub(guid, 1, 9) == "Creature-" then
+		return
+	end
+	if event == "UNIT_DIED" then
+		GuidBlacklist:Add(guid)
+	elseif event == "SPELL_RESURRECT" then
+		GuidBlacklist:Rem(guid)
+	end
+end
+
 function Healer:GetBlizzardTanks()
 	self:ClearTanks()
-	local numRaidMembers = GetNumRaidMembers()
+	local numRaidMembers = GetNumGroupMembers()
 	local cols = 0
-	for i=1, MAX_RAID_MEMBERS do
-		if i > numRaidMembers then break end
-		local name, rank, subgroup, level, class, fileName, zone, online, isDead, role, loot = GetRaidRosterInfo(i)
-		if role == "MAINTANK" then
-			local _, cls = UnitClass(name)
-			if true or cls == "WARRIOR" or cls == "PALADIN" or cls == "DRUID" then
+	
+	if numRaidMembers > 0 then
+		for i=1, MAX_RAID_MEMBERS do
+			if i > numRaidMembers then break end
+			local name, rank, subgroup, level, class, fileName, zone, online, isDead, role, loot = GetRaidRosterInfo(i)
+			if role == "MAINTANK" then
 				self:AddTank(name)
-				cols = cols + 1
-			end
-		end
-	end
-	self:SetNumColumns(cols)
-end
-
--- oRA2 compat
-function Healer:WatchORA()
-	if oRA2Listener.RegisterEvent then
-		oRA2Listener:RegisterEvent("oRA_MainTankUpdate")
-		self:oRAUpdateMainTanks()
-	end
-end
-
-function oRA2Listener:oRA_MainTankUpdate()
-	Healer:oRAUpdateMainTanks()
-end
-
-function Healer:oRAUpdateMainTanks()
-	if not self:IsEnabled() then return end
-	if not oRA then return end
-	if not oRA.maintanktable then return end
-
-	self:ClearTanks()
-	local cols = 0
-	for k, v in pairs(oRA.maintanktable) do
-		if v then
-			local _, cls = UnitClass(v)
-			if true or cls == "WARRIOR" or cls == "PALADIN" or cls == "DRUID" then
-				self:AddTank(v)
 				cols = cols + 1
 			end
 		end

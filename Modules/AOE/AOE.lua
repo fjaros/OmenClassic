@@ -2,9 +2,8 @@ local MINOR_VERSION = tonumber(("$Revision: 74806 $"):match("%d+"))
 if MINOR_VERSION > Omen.MINOR_VERSION then Omen.MINOR_VERSION = MINOR_VERSION end
 
 local bars
-local Threat = LibStub("Threat-2.0")
+local Threat = LibStub("LibThreatClassic2")
 local AOE = Omen:NewModule("AOE", Omen.ModuleBase, "AceEvent-3.0", "AceTimer-3.0")
-local GUID = LibStub("LibGUIDRegistry-0.1")
 local table_sort = _G.table.sort
 local math_abs = _G.math.abs
 local math_floor = _G.math.floor
@@ -122,8 +121,8 @@ function AOE:OnEnable()
 	bars = self.bars
 	self:ClearBars()
 	Threat.RegisterCallback(self, "ThreatUpdated")
-	GUID.RegisterCallback(self, "RaidTargetGUIDSet")
 	self:RegisterEvent("PLAYER_REGEN_ENABLED")
+	self:RegisterEvent("RAID_TARGET_UPDATE")
 
 	playerGUID = UnitGUID("player")
 	Omen:SetTitle(L["AOE Mode"] .. ": " .. UnitName("player"))
@@ -138,17 +137,31 @@ end
 
 function AOE:OnDisable()
 	self:UnregisterEvent("PLAYER_REGEN_ENABLED")
-	GUID.UnregisterCallback(self, "RaidTargetGUIDSet")
 	Threat.UnregisterCallback(self, "ThreatUpdated")
 	self:Super("OnDisable")
 end
 
-function AOE.RaidTargetGUIDSet(lib, event, guid, name, target, unitID)
-	if raidTargetsReverse[target] then
-		raidTargets[raidTargetsReverse[target]] = nil
+function AOE:RAID_TARGET_UPDATE()
+	local numRaidMembers = GetNumGroupMembers()
+	local cols = 0
+	
+	if numRaidMembers > 0 then
+		for i=1, MAX_RAID_MEMBERS do
+			if i > numRaidMembers then break end
+			local unitId = "raid" .. i .. "target"
+			if UnitExists(unitId) then
+				local iconId = GetRaidTargetIndex(unitId)
+				if iconId then
+					if raidTargetsReverse[iconId] then
+						raidTargets[raidTargetsReverse[iconId]] = nil
+					end
+					local unitGuid = UnitGUID(unitId)
+					raidTargets[unitGuid] = iconId
+					raidTargetsReverse[iconId] = unitGuid
+				end
+			end
+		end
 	end
-	raidTargets[guid] = target
-	raidTargetsReverse[target] = guid
 end
 
 local labelsWithIcon = {
@@ -170,7 +183,8 @@ function AOE:UpdateBar(guid, threat, overrideMax)
 	if not overrideMax and maxThreat <= 0 then
 		local bar = self:AcquireBar(guid, true)
 		if bar then
-			bar.value = 0 -- to release it on next update
+			bar.value = 0
+			self:ArrangeBars()
 		end
 	else
 		local bar, isNew = self:AcquireBar(guid)
@@ -180,7 +194,7 @@ function AOE:UpdateBar(guid, threat, overrideMax)
 			bar:SetLabel("Enemy", Threat.GUIDNameLookup[guid])
 		end
 		local scaleFactor = 1.0
-		if tankMode and Threat:GetModule("Player").isTanking then
+		if tankMode and Threat:GetModule("Player-r" .. Omen.LTC_MINOR).isTanking then
 			local secondGUID, secondThreat = Threat:GetPlayerAtPosition(guid, 2)
 			if secondThreat and secondThreat < threat and secondThreat > 0 then
 				maxThreat = secondThreat
@@ -192,7 +206,7 @@ function AOE:UpdateBar(guid, threat, overrideMax)
 		bar.value = pct * scaleFactor
 		bar.real_pct = pct
 	end
-	if GetTime() - lastUpdatedAt > 0.25 then
+	if GetTime() - lastUpdatedAt > 0.1 then
 		lastUpdatedAt = GetTime()
 		self:ArrangeBars()
 	end
@@ -240,7 +254,7 @@ function AOE:ArrangeBars()
 			b = 0
 			if bar.isTarget then
 				r, g, b = 0.3, 0.3, 1
-			elseif tankMode and Threat:GetModule("Player").isTanking then
+			elseif tankMode and Threat:GetModule("Player-r" .. Omen.LTC_MINOR).isTanking then
 				if pct > 1.0 then
 					g = 1
 					r = 3 - 2*pct

@@ -76,7 +76,6 @@ L["Animate bars"] = "움직이는 바"
 L["Smoothly animate bar changes"] = "바가 부드럽게 움직이도록 변경합니다."
 L["Hides Omen when you are resting, not in a party, or in an arena or battleground"] = "휴식 상태나 파티가 아닐때, 또는 투기장이나 전장일때 Omen을 숨깁니다."
 L["Error"] = "오류"
-L["Unable to use shake warning. If you have nameplates turned on, turn them off to enable shake warnings."] = "진동 경고를 사용할 수 없습니다. nameplates(이름표 표시)가 켜져있는 경우, 진동 경고를 가능하게 하기 위하여 그것을 끄십시오."
 
 L["Background opacity"] = "배경 투명도"
 L["Opacity of each bar's background"] = "바의 배경의 투명도를 설정합니다."
@@ -130,17 +129,11 @@ L["Save the current settings as a skin"] = "현재 설정된 스킨을 저장합
 L["Click|r to toggle the Omen window"] = "클릭|r Omen 창 토글"
 L["Right-click|r to open the options menu"] = "우-클릭|r 설정 메뉴 열기"
 
-L["Attach to minimap"] = "미니맵에 표시"
-L["FuBar options"] = "FuBar 옵션"
-L["Position"] = "위치"
-L["Left"] = "왼쪽"
-L["Center"] = "가운데"
-L["Right"] = "오른쪽"
+L["Minimap options"] = "미니맵 옵션"
 L["Show text"] = "텍스트 표시"
 L["Show icon"] = "아이콘 표시"
 
 L["Standby"] = "사용 대기"
-L["Hide minimap/FuBar icon"] = "미니맵/FuBar 아이콘 숨김"
 
 L["Configure Omen"] = "Omen 설정"
 

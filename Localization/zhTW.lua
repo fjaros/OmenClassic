@@ -74,7 +74,6 @@ L["Animate bars"] = "動畫長條棒"
 L["Smoothly animate bar changes"] = "平滑動畫長條棒"
 L["Hides Omen when you are resting, not in a party, or in an arena or battleground"] = "當您在休息、非組隊、在競技場或戰場的時候隱藏 Omen"
 L["Error"] = "錯誤"
-L["Unable to use shake warning. If you have nameplates turned on, turn them off to enable shake warnings."] = "無法使用警報功能。如果您啟動了單位名牌，關閉此功能就可以啟動警報功能"
 
 L["Background opacity"] = "背景透明度"
 L["Opacity of each bar's background"] = "每個計量條的背景透明度"
@@ -128,17 +127,11 @@ L["Save the current settings as a skin"] = "保存目前的樣式設定"
 L["Click|r to toggle the Omen window"] = "點擊|r打開/關閉 Omen 設定面板"
 L["Right-click|r to open the options menu"] = "右鍵|r打開設定選單"
 
-L["Attach to minimap"] = "依附到小地圖"
-L["FuBar options"] = "FuBar 設定"
-L["Position"] = "位置"
-L["Left"] = "左邊"
-L["Center"] = "居中"
-L["Right"] = "右邊"
+L["Minimap options"] = "小地圖 設定"
 L["Show text"] = "顯示文字"
 L["Show icon"] = "顯示小圖示"
 
 L["Standby"] = "待命"
-L["Hide minimap/FuBar icon"] = "隱藏小地圖/Fubar 小圖示"
 
 L["Configure Omen"] = "Omen 設定"
 

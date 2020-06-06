@@ -3,7 +3,8 @@ if MINOR_VERSION > Omen.MINOR_VERSION then Omen.MINOR_VERSION = MINOR_VERSION en
 
 local bars
 local SingleTarget = Omen:NewModule("SingleTarget", Omen.ModuleBase, "AceEvent-3.0", "AceTimer-3.0")
-local Threat = LibStub("Threat-2.0")
+local Threat = LibStub("LibThreatClassic2")
+local LibCC = LibStub("LibClassicCasterino")
 local timers = {}
 local table_sort = _G.table.sort
 local math_abs = _G.math.abs
@@ -29,7 +30,6 @@ local configOptions = {
 		Enable = true,
 		EnableSound = true,
 		EnableFlash = true,
-		EnableShake = false,
 		EnableMessage = true,
 		Threshold = 90,
 		SoundFile = "Fel Nova",
@@ -116,18 +116,6 @@ local options = {
 					end,
 					disabled = function() return not SingleTarget:GetOption("Warnings.Enable") end
 				},
-				shake = {
-					type = "toggle",
-					name = L["Enable Screen Shake"],
-					desc = L["Enable Screen Shake"],
-					get = function(info)
-						return SingleTarget:GetOption("Warnings.EnableShake")
-					end,
-					set = function(info, v)
-						SingleTarget:SetOption("Warnings.EnableShake", v)
-					end,
-					disabled = function() return not SingleTarget:GetOption("Warnings.Enable") end
-				},				
 				message = {
 					type = "toggle",
 					name = L["Enable Warning Message"],
@@ -506,6 +494,11 @@ end
 
 local lastUpdatedAt = 0
 function SingleTarget:UpdateBar(guid, threat)
+	-- Ignore the update if the guid is blacklisted or dead (should be blacklisted)
+	if GuidBlacklist:Has(guid) or UnitIsDead("target") then
+		return
+	end
+
 	-- grab the bar corresponding to our GUID
 	local bar, isNew = self:AcquireBar(guid)
 	-- if its a new bar, then set the labels and colors
@@ -530,7 +523,7 @@ function SingleTarget:UpdateBar(guid, threat)
 	bar.value = threat
 	
 	-- and update all the bars in the display (throttled to 0.25 seconds)
-	if GetTime() - lastUpdatedAt > 0.25 then
+	if GetTime() - lastUpdatedAt > 0.1 then
 		aggroThreat = aggroThreat or Threat:GetMaxThreatOnTarget(guid)
 		lastUpdatedAt = GetTime()
 		self:ArrangeBars()
@@ -566,6 +559,7 @@ function SingleTarget:ArrangeBars()
 			aggroBar:SetLabel("Name", ("> %s <"):format(L["Pull Aggro"]))
 			aggroBar:SetLabel("TPS", "")
 		end
+		--print("AGGROTHREAT " .. aggroThreat .. "," .. hostileUnit)
 		if Threat:UnitInMeleeRange(hostileUnit) then
 			aggroBar.value = aggroThreat * 1.1
 			aggroBar:SetLabel("Threat", aggroBar:ConvertToK(aggroThreat * 1.1))
@@ -663,6 +657,7 @@ function SingleTarget:ThreatUpdated(event, srcGUID, dstGUID, threat)
 	if (hostileGUID and dstGUID == hostileGUID) then
 		-- grab aggroThreat and selfThreat
 		aggroThreat = aggroGUID and ((srcGUID == aggroGUID) and threat or Threat:GetThreat(aggroGUID, dstGUID)) or Threat:GetMaxThreatOnTarget(dstGUID) or 1
+		--print("SETTING AT: " .. aggroGUID .. "," .. threat .. "," .. Threat:GetThreat(aggroGUID, dstGUID) .. "," .. Threat:GetMaxThreatOnTarget(dstGUID))
 		selfThreat = (srcGUID == playerGUID) and threat or Threat:GetThreat(playerGUID, dstGUID) or 0
 		
 		-- run the warning logic
@@ -676,7 +671,7 @@ function SingleTarget:ThreatUpdated(event, srcGUID, dstGUID, threat)
 	threatUpdatedAt = GetTime()
 	if not timers.OmenTPSUpdate then
 		if not timers.OmenCancelTPSUpdate then
-			timers.OmenCancelTPSUpdate = self:ScheduleRepeatingTimer("CancelTPSUpdate", 6)
+			timers.OmenCancelTPSUpdate = self:ScheduleRepeatingTimer("CancelTPSUpdate", 1)
 		end
 		timers.OmenTPSUpdate = self:ScheduleRepeatingTimer("UpdateTPS", self:GetOption("TPS.UpdateFrequency"))
 	end
@@ -757,7 +752,7 @@ function SingleTarget:PLAYER_TARGET_CHANGED()
 		hostileUnit = "targettarget"
 		aggroUnit = "targettargettarget"
 		-- this is a whacky update because we dont get events when our mob changes its target
-		timers.TargetTargetCheck = self:ScheduleRepeatingTimer("TargetTargetCheck", 0.5)
+		timers.TargetTargetCheck = self:ScheduleRepeatingTimer("TargetTargetCheck", 0.1)
 	end
 	
 	-- if we didnt find a valid threat target, then just skip everything
@@ -772,7 +767,7 @@ function SingleTarget:PLAYER_TARGET_CHANGED()
 	end
 	
 	-- get the GUIDs of our stuff
-	hostileGUID = UnitGUID(hostileUnit) 
+	hostileGUID = UnitGUID(hostileUnit)
 	aggroGUID = UnitGUID(aggroUnit)
 	
 	-- get the threat of our new target
@@ -791,7 +786,7 @@ function SingleTarget:CheckWarn(s, d, t)
 	if s ~= playerGUID and s ~= aggroGUID then return end
 	-- Require that tanks be tanking for at least 2.5 seconds before issuing aggro warnings. Hacky way to fix RSTS warnings.
 	
-	if Threat:GetModule("Player").isTanking and self:GetOption("Warnings.DisableWhileTanking") then return end
+	if Threat:GetModule("Player-r" .. Omen.LTC_MINOR).isTanking and self:GetOption("Warnings.DisableWhileTanking") then return end
 	if GetTime() - lastTargetSwitchTime < 2.5 then return end	
 	if not aggroThreat then return end
 	
@@ -808,7 +803,6 @@ function SingleTarget:CheckWarn(s, d, t)
 		Omen:Warn(
 			self:GetOption("Warnings.EnableSound") and Media:Fetch("sound", self:GetOption("Warnings.SoundFile")),
 			self:GetOption("Warnings.EnableFlash"),
-			self:GetOption("Warnings.EnableShake"),
 			msg
 		)
 		self.warned = true
@@ -821,7 +815,6 @@ function SingleTarget:TestWarnings()
 	Omen:Warn(
 		SingleTarget:GetOption("Warnings.EnableSound") and Media:Fetch("sound", SingleTarget:GetOption("Warnings.SoundFile")),
 		SingleTarget:GetOption("Warnings.EnableFlash"),
-		SingleTarget:GetOption("Warnings.EnableShake"),
 		SingleTarget:GetOption("Warnings.EnableMessage") and "Warning Test" or nil
 	)
 end
@@ -852,8 +845,8 @@ function SingleTarget:UNIT_TARGET(event, unit)
 		timers.TargetSwitch = nil
 	end
 	-- and start a new timer (only if the target is not casting some spell)
-	if not UnitCastingInfo(hostileUnit) or not aggroGUID then
-		timers.TargetSwitch = self:ScheduleTimer("SwitchAggroTarget", 0.5)
+	if not LibCC:UnitCastingInfo(hostileUnit) or not aggroGUID then
+		timers.TargetSwitch = self:ScheduleTimer("SwitchAggroTarget", 0.1)
 	end
 end
 

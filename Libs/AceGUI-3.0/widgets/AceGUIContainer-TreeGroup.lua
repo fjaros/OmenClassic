@@ -59,6 +59,7 @@ end
 local function UpdateButton(button, treeline, selected, canExpand, isExpanded)
 	local self = button.obj
 	local toggle = button.toggle
+	local frame = self.frame
 	local text = treeline.text or ""
 	local icon = treeline.icon
 	local iconCoords = treeline.iconCoords
@@ -77,6 +78,8 @@ local function UpdateButton(button, treeline, selected, canExpand, isExpanded)
 		button:UnlockHighlight()
 		button.selected = false
 	end
+	local normalTexture = button:GetNormalTexture()
+	local line = button.line
 	button.level = level
 	if ( level == 1 ) then
 		button:SetNormalFontObject("GameFontNormal")
@@ -111,11 +114,11 @@ local function UpdateButton(button, treeline, selected, canExpand, isExpanded)
 	
 	if canExpand then
 		if not isExpanded then
-			toggle:SetNormalTexture(130838) -- Interface\\Buttons\\UI-PlusButton-UP
-			toggle:SetPushedTexture(130836) -- Interface\\Buttons\\UI-PlusButton-DOWN
+			toggle:SetNormalTexture("Interface\\Buttons\\UI-PlusButton-UP")
+			toggle:SetPushedTexture("Interface\\Buttons\\UI-PlusButton-DOWN")
 		else
-			toggle:SetNormalTexture(130821) -- Interface\\Buttons\\UI-MinusButton-UP
-			toggle:SetPushedTexture(130820) -- Interface\\Buttons\\UI-MinusButton-DOWN
+			toggle:SetNormalTexture("Interface\\Buttons\\UI-MinusButton-UP")
+			toggle:SetPushedTexture("Interface\\Buttons\\UI-MinusButton-DOWN")
 		end
 		toggle:Show()
 	else
@@ -198,6 +201,7 @@ end
 
 local function Button_OnDoubleClick(button)
 	local self = button.obj
+	local status = self.status or self.localstatus
 	local status = (self.status or self.localstatus).groups
 	status[button.uniquevalue] = not status[button.uniquevalue]
 	self:RefreshTree()
@@ -372,6 +376,7 @@ local methods = {
 
 	["BuildLevel"] = function(self, tree, level, parent)
 		local groups = (self.status or self.localstatus).groups
+		local hasChildren = self.hasChildren
 		
 		for i, v in ipairs(tree) do
 			if v.children then

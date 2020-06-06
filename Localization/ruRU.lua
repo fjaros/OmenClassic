@@ -75,7 +75,6 @@ L["Animate bars"] = "Анимация полос"
 L["Smoothly animate bar changes"] = "Плавная анимация изменений полос"
 L["Hides Omen when you are resting, not in a party, or in an arena or battleground"] = "Скрыть Omen когда вы отдыхаете, не в группе, или на арене,поле сражений"
 L["Error"] = "Ошибка"
-L["Unable to use shake warning. If you have nameplates turned on, turn them off to enable shake warnings."] = "Невозможно использовать предупреждение встряской. Если вы включили именную табличку, отключите её для включения предупреждений встряской"
 
 L["Background opacity"] = "Полупрозрачность фона"
 L["Opacity of each bar's background"] = "Полупрозрачность фона полос"
@@ -129,17 +128,11 @@ L["Save the current settings as a skin"] = "Сохраните текущие п
 L["Click|r to toggle the Omen window"] = "Кликни|r чтоб открыть-закрыть окно Omen'а"
 L["Right-click|r to open the options menu"] = "Правый-Клик|r чтоб открыть меню настроек"
 
-L["Attach to minimap"] = "Прикрепить к МиниКарте"
-L["FuBar options"] = "Опции FuBar'а"
-L["Position"] = "Расположение"
-L["Left"] = "С лева"
-L["Center"] = "Центр"
-L["Right"] = "С право"
+L["Minimap options"] = "Опции МиниКарты"
 L["Show text"] = "Показать текст"
 L["Show icon"] = "Показать икону"
 
 L["Standby"] = "В режиме ожидания"
-L["Hide minimap/FuBar icon"] = "Скрыть икону у МиниКарты/FuBar'а"
 
 L["Configure Omen"] = "Настройка Omen'а"
 

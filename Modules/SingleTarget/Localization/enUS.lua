@@ -7,7 +7,6 @@ L["Warnings"] = true
 L["Enable Warnings"] = true
 L["Enable Sound"] = true
 L["Enable Screen Flash"] = true
-L["Enable Screen Shake"] = true
 L["Sound to play"] = true
 L["Aggro Bars"] = true
 L["Show bar"] = true

@@ -165,6 +165,7 @@ local methods = {
 
 	["BuildTabs"] = function(self)
 		local hastitle = (self.titletext:GetText() and self.titletext:GetText() ~= "")
+		local status = self.status or self.localstatus
 		local tablist = self.tablist
 		local tabs = self.tabs
 		

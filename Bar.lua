@@ -7,7 +7,7 @@ local barPool = {}
 local labelPool = {}
 local barPrototype_mt = {__index = barPrototype}
 local Media = LibStub("LibSharedMedia-3.0")
-local Threat = LibStub("Threat-2.0")
+local Threat = LibStub("LibThreatClassic2")
 local math_floor = _G.math.floor
 local strlower = _G.strlower
 local min, max = _G.min, _G.max

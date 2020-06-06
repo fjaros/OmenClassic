@@ -5,8 +5,4 @@ if not L then return end
 L["Healer Mode"] = "Modo sanador"
 L["Column Spacing"] = "Columnas espaciadas"
 
-L["Data source"] = "Origen de datos"
-L["Get tanks from..."] = "Tomar tanques de..."
-L["oRA2 Main Tanks"] = "Tanques principales de oRA2"
-L["Blizzard Main Tanks"] = "Tanques principales de Blizzard"
-L["Healer Mode\n|cffffffffShows an overview of tank target threat\nTank targets come from oRA2 or the Blizzard tank settings.|r"] = "Modo sanador\n|cffffffffMuestra una visión general de la amenaza generada por un tanque objetivo\nLos tanques objetivos vienen dados en oRA2 o en las opciones de tanque de Blizzard.|r"
+L["Healer Mode\n|cffffffffShows an overview of threat for mobs tagged by Main Tank roles|r"] = "Modo sanador\n|cffffffffMuestra una visión general de la amenaza generada por un tanque objetivo|r"

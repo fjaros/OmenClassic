@@ -3,11 +3,19 @@ if MINOR_VERSION > Omen.MINOR_VERSION then Omen.MINOR_VERSION = MINOR_VERSION en
 
 local L = LibStub("AceLocale-3.0"):GetLocale("Omen")
 local module_icons = {}
-local Threat = LibStub("Threat-2.0")
+local Threat = LibStub("LibThreatClassic2")
 local math_abs = math.abs
 local Media = LibStub("LibSharedMedia-3.0")
 
 local table_sort = _G.table.sort
+
+local module_order = {
+	SingleTarget = 1,
+	Overview = 2,
+	AOE = 3,
+	Healer = 4,
+	AggroCount = 5
+}
 
 local sizing = function()
 	if Omen.activeModule then Omen.activeModule:UpdateLayout() end
@@ -35,7 +43,7 @@ function Omen:CreateFrame()
 	
 	self.TitleText = self.Title:CreateFontString(nil, nil, "GameFontNormal")
 	self.TitleText:SetPoint("LEFT", self.Title, "LEFT", 10, 0)
-	self.defaultTitle = "Omen|cffffcc002|r"
+	self.defaultTitle = "Omen |cffffcc00Classic|r"
 	self:SetTitle()
 	-- self:ScheduleRepeatingTimer("SetTitleInternal", 10)
 	self.TitleText:SetJustifyH("LEFT")
@@ -43,7 +51,7 @@ function Omen:CreateFrame()
 
 	self.VersionText = self.Title:CreateFontString(nil, nil, "GameFontNormal")
 	self.VersionText:SetPoint("TOPRIGHT", self.Title, "TOPRIGHT", -6, -4)
-	self.VersionText:SetText(("r|cffffffff%s|r"):format(select(2, LibStub("Threat-2.0"))))
+	self.VersionText:SetText(("r|cffffffff%s|r"):format(Omen.LTC_MINOR))
 	local f, s, p = self.VersionText:GetFont()
 	self.VersionText:SetFont(f, 8, p)
 
@@ -120,17 +128,17 @@ function Omen:CreateFrame()
 	grip:SetHeight(16)
 	grip:SetScript("OnMouseDown", function()
 		if not Omen.db.profile.Locked then
-			this:GetParent():GetParent().IsMovingOrSizing = true
+			Omen.Anchor.IsMovingOrSizing = true
 			Omen.Anchor:SetScript("OnSizeChanged", sizing)
-			this:GetParent():GetParent():StartSizing()
+			Omen.Anchor:StartSizing()
 		end
 	end)
 	grip:SetScript("OnMouseUp", function()
 		Omen.Anchor:SetScript("OnSizeChanged", nil)
-		this:GetParent():GetParent():StopMovingOrSizing()
+		Omen.Anchor:StopMovingOrSizing()
 		Omen:SetAnchors()
 		sizing()
-		this:GetParent():GetParent().IsMovingOrSizing = nil
+		Omen.Anchor.IsMovingOrSizing = nil
 	end)
 	grip:SetPoint("BOTTOMRIGHT", self.BarList, "BOTTOMRIGHT", 0, 1)
 	self.Grip = grip
@@ -281,7 +289,16 @@ end
 function Omen:LayoutModuleIcons()
 	local anchor, anchorPoint, offset = self.ModuleList, "LEFT", 6
 	self.ModuleList:SetHeight(Omen.Options["Skin.Modules.Height"])
+	
+	local sortedModules = {}
 	for k, v in self:IterateModules() do
+		table.insert(sortedModules, {k, v})
+	end
+	table.sort(sortedModules, function(a, b) return module_order[a[1]] and module_order[b[1]] and module_order[a[1]] < module_order[b[1]] end)
+	
+	for _, element in ipairs(sortedModules) do
+		local k = element[1]
+		local v = element[2]
 		local icon = module_icons[k]
 		if not icon then
 			icon = CreateFrame("Button", nil, self.ModuleList)
@@ -333,9 +350,9 @@ function Omen:UpdateVisible()
 	end
 	if show == nil then
 		show =	(Omen.Options["ShowWith.Pet"] and UnitExists("pet")) or
-				(Omen.Options["ShowWith.Alone"] and GetNumPartyMembers() + GetNumRaidMembers() == 0 and not UnitExists("pet")) or
-				(Omen.Options["ShowWith.Party"] and GetNumPartyMembers() > 0) or
-				(Omen.Options["ShowWith.Raid"] and GetNumRaidMembers() > 0)
+				(Omen.Options["ShowWith.Alone"] and GetNumGroupMembers() == 0 and not UnitExists("pet")) or
+				(Omen.Options["ShowWith.Party"] and not IsInRaid() and GetNumGroupMembers() > 0) or
+				(Omen.Options["ShowWith.Raid"] and IsInRaid() and GetNumGroupMembers() > 0)
 	end
 	if self.Options["ShowWith.Alone"] then
 		Threat:RequestActiveOnSolo(true)

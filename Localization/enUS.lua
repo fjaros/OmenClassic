@@ -74,7 +74,6 @@ L["Animate bars"] = true
 L["Smoothly animate bar changes"] = true
 L["Hides Omen when you are resting, not in a party, or in an arena or battleground"] = true
 L["Error"] = true
-L["Unable to use shake warning. If you have nameplates turned on, turn them off to enable shake warnings."] = true
 
 L["Background opacity"] = true
 L["Opacity of each bar's background"] = true
@@ -128,17 +127,11 @@ L["Save the current settings as a skin"] = true
 L["Click|r to toggle the Omen window"] = true
 L["Right-click|r to open the options menu"] = true
 
-L["Attach to minimap"] = true
-L["FuBar options"] = true
-L["Position"] = true
-L["Left"] = true
-L["Center"] = true
-L["Right"] = true
+L["Minimap options"] = true
 L["Show text"] = true
 L["Show icon"] = true
 
 L["Standby"] = true
-L["Hide minimap/FuBar icon"] = true
 
 L["Configure Omen"] = true
 

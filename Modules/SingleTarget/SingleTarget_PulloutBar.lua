@@ -1,7 +1,7 @@
 local MINOR_VERSION = tonumber(("$Revision: 78999 $"):match("%d+"))
 if MINOR_VERSION > Omen.MINOR_VERSION then Omen.MINOR_VERSION = MINOR_VERSION end
 
-local Threat = LibStub("Threat-2.0")
+local Threat = LibStub("LibThreatClassic2")
 local SingleTarget = Omen:GetModule("SingleTarget")
 local Media = LibStub("LibSharedMedia-3.0")
 local UnitGUID = _G.UnitGUID

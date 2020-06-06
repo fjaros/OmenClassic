@@ -1,10 +1,9 @@
 local MINOR_VERSION = tonumber(("$Revision: 79486 $"):match("%d+"))
 if MINOR_VERSION > Omen.MINOR_VERSION then Omen.MINOR_VERSION = MINOR_VERSION end
 
-local Threat = LibStub("Threat-2.0")
+local Threat = LibStub("LibThreatClassic2")
 local AOE = Omen:GetModule("AOE")
 local Media = LibStub("LibSharedMedia-3.0")
-local GUID = LibStub("LibGUIDRegistry-0.1")
 local UnitGUID = _G.UnitGUID
 
 local pullout_cls = setmetatable({}, {__index=Omen.PulloutBase})
@@ -29,9 +28,9 @@ function pullout_cls:New(guid)
 
 	pullout.raidTargets = {}
 	pullout.raidTargetsReverse = {}
-	GUID.RegisterCallback(pullout, "RaidTargetGUIDSet")
 
 	pullout.frame:RegisterEvent("PLAYER_TARGET", function(self) self.parent:UpdateLayout() end)
+	pullout.frame:RegisterEvent("RAID_TARGET_UPDATE", function(self) self.parent:RAID_TARGET_UPDATE() end)
 
 	pullout.targetBar = pullout:NewBar()
 	pullout.targetBar.frame:SetFrameLevel(10)
@@ -63,14 +62,27 @@ function pullout_cls:ThreatUpdated(event, srcGUID, dstGUID, threat)
 	self:UpdateLayout()
 end
 
-function pullout_cls:RaidTargetGUIDSet(event, guid, name, target, unitID)
+function pullout_cls:RAID_TARGET_UPDATE()
 	local rt = self.raidTargets
 	local rtrev = self.raidTargetsReverse
-	if rt[guid] then
-		rtrev[rt[guid]] = nil
+	local numRaidMembers = GetNumGroupMembers()
+	if numRaidMembers > 0 then
+		for i=1, MAX_RAID_MEMBERS do
+			if i > numRaidMembers then break end
+			local unitId = "raid" .. i .. "target"
+			if UnitExists(unitId) then
+				local iconId = GetRaidTargetIndex(unitId)
+				if iconId then
+					if rtrev[iconId] then
+						rt[rtrev[iconId]] = nil
+					end
+					local unitGuid = UnitGUID(unitId)
+					rt[unitGuid] = iconId
+					rtrev[iconId] = unitGuid
+				end
+			end
+		end
 	end
-	rt[guid] = target
-	rtrev[target] = guid
 	self:UpdateLayout()
 end
 

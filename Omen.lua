@@ -1,16 +1,16 @@
 local MINOR_VERSION = tonumber(("$Revision: 79002 $"):match("%d+"))
 local PlayerName = UnitName("player")
-local Threat = LibStub("Threat-2.0")
+local Threat = LibStub("LibThreatClassic2")
 local math_floor = math.floor
 local timers = {}
 local AceConfig = LibStub("AceConfigDialog-3.0")
 local L = LibStub("AceLocale-3.0"):GetLocale("Omen")
+local LDB = LibStub("LibDataBroker-1.1")
+local LDBIcon = LibStub("LibDBIcon-1.0")
 
 Omen = LibStub("AceAddon-3.0"):NewAddon("Omen", "AceEvent-3.0", "AceTimer-3.0", "AceBucket-3.0", "AceConsole-3.0", "LibSink-2.0")
 Omen.MINOR_VERSION = MINOR_VERSION
-
--- Silently fail embedding if it doesn't exist
-LibStub("AceAddon-3.0"):EmbedLibrary(Omen, "LibFuBarPlugin-Mod-3.0", true)
+Omen.LTC_MINOR = LibStub.minors["LibThreatClassic2"]
 
 Omen:SetDefaultModuleState(false)
 Omen.SkinList = {}
@@ -26,7 +26,16 @@ function Omen:OnInitialize()
 		profile = {
 			activeSkin = {},
 			options = {},
-			sinkOptions = {}
+			sinkOptions = {},
+			MinimapIcon = {
+				hide = false,
+				minimapPos = 220,
+				radius = 80
+			},
+			GuidBlacklist = {
+				i = 1,
+				t = {}
+			}
 		}
 	})
 	self.db.RegisterCallback(self, "OnProfileChanged", "OnProfileChanged")
@@ -41,17 +50,8 @@ function Omen:OnInitialize()
 		self.Anchor:SetHeight(120)
 	end
 	Omen:PopulateSkinList()
-
-	if LibStub:GetLibrary("LibFuBarPlugin-Mod-3.0", true) then
-		-- Create the FuBarPlugin bits.
-		self:SetFuBarOption("tooltipType", "GameTooltip")
-		self:SetFuBarOption("hasNoColor", true)
-		self:SetFuBarOption("cannotDetachTooltip", true)
-		self:SetFuBarOption("hideWithoutStandby", true)
-		self:SetFuBarOption("iconPath", [[Interface\AddOns\Omen\icon]])	
-	end
 		
-	self.version = ("Omen r%s / Threat-2.0 r%s"):format(Omen.MINOR_VERSION, LibStub.minors["Threat-2.0"])
+	self.version = ("Omen Classic r%s / LibThreatClassic2 r%s"):format(Omen.MINOR_VERSION, Omen.LTC_MINOR)
 	
 	optFrame = AceConfig:AddToBlizOptions("Omen", "Omen")
 	
@@ -64,6 +64,10 @@ function Omen:OnInitialize()
 	-- because we want to override the anchors saved in layout-cache.txt
 	-- which is applied just before PLAYER_LOGIN.
 	self:RegisterEvent("PLAYER_LOGIN")
+	
+	-- Some modes may not be loaded, so let's do it here as well
+	GuidBlacklist:OnInitialize()
+	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 end
 
 function Omen:PLAYER_LOGIN()
@@ -75,34 +79,59 @@ function Omen:PLAYER_LOGIN()
 	self:UnregisterEvent("PLAYER_LOGIN")
 	if self.activeModule then self.activeModule:ClearBars() end
 	
-	-- Optional launcher support for LDB-1.1 if present, this code is placed here so
-	-- that it runs after all other addons have loaded since we don't embed LDB-1.1
-	local DataBroker = LibStub("LibDataBroker-1.1", true)
-	if DataBroker then
-		local launcher = DataBroker:NewDataObject("Omen", {
-		    type = "launcher",
-		    icon = "Interface\\AddOns\\Omen\\icon",
-		    OnClick = function(clickedframe, button)
-				if button == "RightButton" then Omen:ShowConfig() else Omen:Toggle() end
-			end,
-		})
+	local launcher = LDB:NewDataObject("Omen", {
+		type = "launcher",
+		icon = "Interface\\AddOns\\Omen\\icon",
+		OnClick = function(clickedframe, button)
+			if button == "RightButton" then Omen:ShowConfig() else Omen:Toggle() end
+		end,
+		OnTooltipShow = function(tooltip)
+			local showText = self:GetOption("minimapIcon.showText")
+			if showText == nil or showText == true then
+				tooltip:AddLine("|cffffff00" .. L["Click|r to toggle the Omen window"] .. "\n|cffffff00" .. L["Right-click|r to open the options menu"])
+				tooltip:Show()
+			end
+		end
+	})
+	LDBIcon:Register("Omen", launcher, self.db.profile.MinimapIcon)
+	LDBIcon:Show()
+end
+
+function Omen:COMBAT_LOG_EVENT_UNFILTERED()
+	local _, event, _, _, _, _, _, guid = CombatLogGetCurrentEventInfo()
+	if not string.sub(guid, 1, 9) == "Creature-" then
+		return
 	end
+	if event == "UNIT_DIED" then
+		GuidBlacklist:Add(guid)
+	elseif event == "SPELL_RESURRECT" then
+		GuidBlacklist:Rem(guid)
+	end
+end
+
+function Omen:HasMinimapIcon()
+	return LDBIcon:GetMinimapButton("Omen") ~= nil
+end
+
+function Omen:IsMinimapIconShown()
+	local minimapButton = LDBIcon:GetMinimapButton("Omen")
+	return minimapButton and minimapButton:IsVisible()
+end
+
+function Omen:HideMinimapIcon()
+	local minimapButton = LDBIcon:GetMinimapButton("Omen")
+	minimapButton:Hide()
+end
+
+function Omen:ShowMinimapIcon()
+	local minimapButton = LDBIcon:GetMinimapButton("Omen")
+	minimapButton:Show()
 end
 
 function Omen:OnProfileChanged(db, name)
 	Omen:ResetMemoizations()
 	Omen:SetAnchors(true)
 	Omen:UpdateDisplay()
-end
-
-function Omen:OnUpdateFuBarTooltip()
-	GameTooltip:AddLine("|cffffff00" .. L["Click|r to toggle the Omen window"])
-	GameTooltip:AddLine("|cffffff00" .. L["Right-click|r to open the options menu"])
-end
-
-function Omen:OnFuBarClick(button)
-	self:Toggle()
-	Omen:SetOption("HardOff", not OmenAnchor:IsVisible())
 end
 
 local modIdx = {}
@@ -160,10 +189,6 @@ function Omen:OnEnable()
 	
 	Threat.RegisterCallback(self, "Activate", "UpdateVisible")
 	Threat.RegisterCallback(self, "Deactivate", "UpdateVisible")
-	
-	if LibStub:GetLibrary("LibFuBarPlugin-Mod-3.0", true) and self:GetOption("FuBar.HideMinimapButton", false) then
-		self:Hide()
-	end
 end
 
 function Omen:OnDisable()
@@ -223,8 +248,10 @@ function Omen:Toggle(setting)
 		self:Print("You toggled Omen during standby, so I enabled it first.")
 		self:SetOption("Standby", false)
 		self:Enable()
-		if self.IsFuBarMinimapAttached and self:IsFuBarMinimapAttached() ~= self:GetOption("FuBar.AttachMinimap") then
-			self:ToggleFuBarMinimapAttached()
+		if self:GetOption("minimapIcon.showIcon") then
+			self:ShowMinimapIcon()
+		else
+			self:HideMinimapIcon()
 		end
 		return -- note: must return here. OnEnable() will call Toggle() again
 	end
@@ -242,74 +269,11 @@ function Omen:Toggle(setting)
 	end
 end
 
---------------------------------
--- Yoinked from BigWigs
---------------------------------
-
--- Shake properties
-local shaking = nil
-local SHAKE_DURATION = 0.8
-local SHAKE_X = 10
-local SHAKE_Y = 10
-local fail = nil
-local shaker = nil
-
-local originalPoints = nil
-local function startShake()
-	if not shaking then
-		-- store old worldframe positions, we need them all, people have frame modifiers for it etc.
-		if not originalPoints then
-			originalPoints = {}
-			for i = 1, WorldFrame:GetNumPoints() do
-				table.insert(originalPoints, {WorldFrame:GetPoint(i)})
-			end
-		end
-		shaking = SHAKE_DURATION -- don't think we want to make this a setting.
-		shaker:Show()
-	end
-end
-
-local function shakeOnUpdate(frame, elapsed)
-	shaking = shaking - elapsed
-	local x, y = 0, 0 -- Resets to original position if we're supposed to stop.
-	if shaking <= 0 then -- stop shaking
-		shaking = nil
-		shaker:Hide()
-	else
-		x = math.random(-SHAKE_X,SHAKE_X)
-		y = math.random(-SHAKE_Y,SHAKE_Y)
-	end
-	WorldFrame:ClearAllPoints()
-	for i, v in ipairs(originalPoints) do
-		WorldFrame:SetPoint(v[1], v[2], v[3], v[4] + x, v[5] + y)
-	end
-end
-
---------------------------------
--- End yoink
---------------------------------
-
-function Omen:Shake()
-	if not shaker then
-		shaker = CreateFrame("Frame", "OmenShaker", UIParent)
-		shaker:Hide()
-		shaker:SetScript("OnUpdate", shakeOnUpdate)
-	end
-	local check = WorldFrame:IsProtected()
-	if not check then
-		startShake()
-	elseif check and not fail then
-		Omen:Print(("|cffff0000%s:|r %s"):format(L["Error"], L["Unable to use shake warning. If you have nameplates turned on, turn them off to enable shake warnings."]))
-		fail = true
-	end
-end
-
-function Omen:Warn(sound, flash, shake, message)
+function Omen:Warn(sound, flash, message)
 	if sound then
 		PlaySoundFile(sound)
 	end
 	if flash then self:Flash() end
-	if shake then self:Shake() end
 	if message then self:Pour(message, 1, 0, 0, nil, 24, "OUTLINE", true) end
 end
 
@@ -329,7 +293,6 @@ function Omen:ShowConfig()
 		AceConfig:Open("Omen", configFrame)
 	end
 end
-Omen.OpenMenu = Omen.ShowConfig		-- for fubar
 
 function Omen:ShowDropdown()
 	local dd = LibStub("LibDropdown-1.0")

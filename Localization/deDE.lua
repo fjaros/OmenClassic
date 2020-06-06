@@ -74,7 +74,6 @@ L["Animate bars"] = "Balken animieren"
 L["Smoothly animate bar changes"] = "Weich animierte Balkenveränderung"
 L["Hides Omen when you are resting, not in a party, or in an arena or battleground"] = "Versteckt Omen wenn man ausruht, nicht in einer Gruppe, Arena oder Schlachtfeld ist."
 L["Error"] = "Fehler"
-L["Unable to use shake warning. If you have nameplates turned on, turn them off to enable shake warnings."] = "Die Wackelwarnungen können nicht verwendet werden, wenn die Namensplaketten aktiviert sind. Bitte schalte diese aus um Wackelwarnungen zu ermöglichen."
 
 L["Background opacity"] = "Hintergrund Transparenz"
 L["Opacity of each bar's background"] = "Hintergrund Transparenz der Balken"
@@ -128,17 +127,11 @@ L["Save the current settings as a skin"] = "Speichert die momentanen Einstellung
 L["Click|r to toggle the Omen window"] = "Klicken|r um das Omen Fenster ein-/auszublenden"
 L["Right-click|r to open the options menu"] = "Rechts-Klick|r um das Optionsfenster zu öffnen"
 
-L["Attach to minimap"] = "An der Minikarte anbringen"
-L["FuBar options"] = "FuBar Optionen"
-L["Position"] = "Position"
-L["Left"] = "Links"
-L["Center"] = "Mitte"
-L["Right"] = "Rechts"
+L["Minimap options"] = "Minikartenoptionen"
 L["Show text"] = "Text anzeigen"
 L["Show icon"] = "Icon anzeigen"
 
 L["Standby"] = "Ruhemodus"
-L["Hide minimap/FuBar icon"] = "Minimap/FuBar Icon verstecken"
 
 L["Configure Omen"] = "Omen konfigurieren"
 

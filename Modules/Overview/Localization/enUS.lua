@@ -4,4 +4,5 @@ if not L then return end
 
 L["Overview Mode"] = true
 L["Show raid icons"] = true
+L["Show unknown creature threat"] = true
 L["Overview Mode\n|cffffffffShows an overview of high-threat raid members|r"] = true
