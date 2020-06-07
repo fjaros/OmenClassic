@@ -9,7 +9,7 @@ local LDB = LibStub("LibDataBroker-1.1")
 local LDBIcon = LibStub("LibDBIcon-1.0")
 
 Omen = LibStub("AceAddon-3.0"):NewAddon("Omen", "AceEvent-3.0", "AceTimer-3.0", "AceBucket-3.0", "AceConsole-3.0", "LibSink-2.0")
-Omen.MINOR_VERSION = 5
+Omen.MINOR_VERSION = 6
 Omen.LTC_MINOR = LibStub.minors["LibThreatClassic2"]
 
 Omen:SetDefaultModuleState(false)
