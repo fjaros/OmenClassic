@@ -1,5 +1,3 @@
-local MINOR_VERSION = tonumber(("$Revision: 78700 $"):match("%d+"))
-if MINOR_VERSION > Omen.MINOR_VERSION then Omen.MINOR_VERSION = MINOR_VERSION end
 
 local L = LibStub("AceLocale-3.0"):GetLocale("Omen")
 local module_icons = {}

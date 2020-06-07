@@ -1,5 +1,3 @@
-local MINOR_VERSION = tonumber(("$Revision: 70598 $"):match("%d+"))
-if MINOR_VERSION > Omen.MINOR_VERSION then Omen.MINOR_VERSION = MINOR_VERSION end
 
 local rawset, rawget = _G.rawset, _G.rawget
 local string_split = string.split

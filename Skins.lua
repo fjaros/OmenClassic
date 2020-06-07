@@ -1,5 +1,3 @@
-local MINOR_VERSION = tonumber(("$Revision: 70383 $"):match("%d+"))
-if MINOR_VERSION > Omen.MINOR_VERSION then Omen.MINOR_VERSION = MINOR_VERSION end
 
 local lookup_table = {}
 local function deepcopy(object)

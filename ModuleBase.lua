@@ -1,5 +1,3 @@
-local MINOR_VERSION = tonumber(("$Revision: 78989 $"):match("%d+"))
-if MINOR_VERSION > Omen.MINOR_VERSION then Omen.MINOR_VERSION = MINOR_VERSION end
 
 local base = {bars = {}, registeredGUIDs = {}}
 local math_floor = _G.math.floor

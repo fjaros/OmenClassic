@@ -1,7 +1,7 @@
 ## Interface: 11304
 ## Version: Classic v1.0
-## X-Build: $Revision: 78750 $
-## X-ReleaseDate: $Date: 2008-03-27 01:18:39 -0700 (Thu, 27 Mar 2008) $
+## X-Build: $Commit: 5 $
+## X-ReleaseDate: $Date: 2020-06-06 19:25:00 -0700 (Sat, 06 Jun 2020) $
 ## Title: Omen Classic
 ## Notes: A lightweight, flexible, multi-target threat meter.
 ## Notes-ruRU: Лёгкий, гибкий, измеритель угрозы.
@@ -9,8 +9,8 @@
 ## Notes-zhCN: 一个灵活的，多目标的，低资源占用的威胁值计量器。
 ## Notes-zhTW: 一個輕量級、有彈性、可監視多個目標的仇恨統計插件。
 ## Notes-koKR: 다중-대상에 대한 위협수준 미터기로 보여줍니다.
-## Author: Antiarc (cheald@gmail dot com)
-## OptionalDeps: Ace3, LibThreatClassic2, LibSharedMedia-3.0, LibSink-2.0, LibDropdown-1.0, LibDBIcon-1.0
+## Author: Antiarc (cheald@gmail dot com), Munchkin-Fairbanks
+## OptionalDeps: Ace3, LibThreatClassic2, LibSharedMedia-3.0, LibSink-2.0, LibDBIcon-1.0
 ## X-Category: Combat
 ## SavedVariables: Omen2DB, Omen2DefaultProfile
 ## X-Embeds: Ace3, LibThreatClassic2, LibSharedMedia-3.0, LibSink-2.0, LibDBIcon-1.0

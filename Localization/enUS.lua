@@ -166,8 +166,8 @@ L["Not compatible!"] = true
 L["Issue threat clear"] = true
 L["Issue threat clear (requires party leader or raid assistant)"] = true
 
-L["Your version of Omen/Threat is out of date. Please update from WAU or http://files.wowace.com/Omen/Omen.zip when possible."] = true
-L["Your version of Omen/Threat is out of date and is not compatible with the newest version. You should update from WAU or http://files.wowace.com/Omen/Omen.zip as soon as possible."] = true
+L["Your version of Omen/LibThreatClassic2 is out of date. Please update from Twitch or https://github.com/fjaros/OmenClassic when possible."] = true
+L["Your version of Omen/LibThreatClassic2 is out of date and is not compatible with the newest version. You should update from Twitch or https://github.com/fjaros/OmenClassic as soon as possible."] = true
 
 L["Whisper older clients informing them to update."] = true
 L["You must be the group leader or a group assistant to do this."] = true

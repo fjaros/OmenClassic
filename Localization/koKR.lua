@@ -168,8 +168,8 @@ L["Not compatible!"] = "호환되지 않습니다!"
 L["Issue threat clear"] = "문제 위협 삭제"
 L["Issue threat clear (requires party leader or raid assistant)"] = "문제있는 위협을 삭제합니다. (파티장 또는 공격대 승급자 이상 권한 필요)"
 
-L["Your version of Omen/Threat is out of date. Please update from WAU or http://files.wowace.com/Omen/Omen.zip when possible."] = "당신의 Omen/Threat은 구식 버전입니다. 가능하다면 WAU나 http://files.wowace.com/Omen/Omen.zip으로부터 업데이트를 하십시오."
-L["Your version of Omen/Threat is out of date and is not compatible with the newest version. You should update from WAU or http://files.wowace.com/Omen/Omen.zip as soon as possible."] = "당신의 Omen/Threat은 구식 버전이며 가장 새로운 버전과 호환이 되지 않습니다. 가능하다면 WAU나 http://files.wowace.com/Omen/Omen.zip으로부터 업데이트를 하십시오."
+L["Your version of Omen/LibThreatClassic2 is out of date. Please update from Twitch or https://github.com/fjaros/OmenClassic when possible."] = "당신의 Omen/LibThreatClassic2은 구식 버전입니다. 가능하다면 Twitch나 https://github.com/fjaros/OmenClassic으로부터 업데이트를 하십시오."
+L["Your version of Omen/LibThreatClassic2 is out of date and is not compatible with the newest version. You should update from Twitch or https://github.com/fjaros/OmenClassic as soon as possible."] = "당신의 Omen/LibThreatClassic2은 구식 버전이며 가장 새로운 버전과 호환이 되지 않습니다. 가능하다면 Twitch나 https://github.com/fjaros/OmenClassic으로부터 업데이트를 하십시오."
 
 L["Whisper older clients informing them to update."] = "구식 버전 사용자에게 귓속말"
 L["You must be the group leader or a group assistant to do this."] = "이것을 사용하기 위해서는 파티장이나 공격대 승급자만 가능합니다."

@@ -166,8 +166,8 @@ L["Not compatible!"] = "不兼容！"
 L["Issue threat clear"] = "手动重置仇恨"
 L["Issue threat clear (requires party leader or raid assistant)"] = "手动重置仇恨（需要队长或者助理权限）"
 
-L["Your version of Omen/Threat is out of date. Please update from WAU or http://files.wowace.com/Omen/Omen.zip when possible."] = "你当前的 Omen/Threat 版本已经过期，请使用 WAU 更新或者从 http://files.wowace.com/Omen/Omen.zip 下载最新版。"
-L["Your version of Omen/Threat is out of date and is not compatible with the newest version. You should update from WAU or http://files.wowace.com/Omen/Omen.zip as soon as possible."] = "你当前的 Omen/Threat 版本已经过期并且不与新版兼容，你应该立即使用 WAU 更新或者从 http://files.wowace.com/Omen/Omen.zip 下载最新版。"
+L["Your version of Omen/LibThreatClassic2 is out of date. Please update from Twitch or https://github.com/fjaros/OmenClassic when possible."] = "你当前的 Omen/LibThreatClassic2 版本已经过期，请使用 Twitch 更新或者从 https://github.com/fjaros/OmenClassic 下载最新版。"
+L["Your version of Omen/LibThreatClassic2 is out of date and is not compatible with the newest version. You should update from Twitch or https://github.com/fjaros/OmenClassic as soon as possible."] = "你当前的 Omen/LibThreatClassic2 版本已经过期并且不与新版兼容，你应该立即使用 Twitch 更新或者从 https://github.com/fjaros/OmenClassic 下载最新版。"
 
 L["Whisper older clients informing them to update."] = "密语旧版本的玩家通知他们更新。"
 L["You must be the group leader or a group assistant to do this."] = "必须是团长或助理才能这么做。"

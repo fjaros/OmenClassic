@@ -1,4 +1,4 @@
-local MINOR_VERSION = tonumber(("$Revision: 79002 $"):match("%d+"))
+
 local PlayerName = UnitName("player")
 local Threat = LibStub("LibThreatClassic2")
 local math_floor = math.floor
@@ -9,7 +9,7 @@ local LDB = LibStub("LibDataBroker-1.1")
 local LDBIcon = LibStub("LibDBIcon-1.0")
 
 Omen = LibStub("AceAddon-3.0"):NewAddon("Omen", "AceEvent-3.0", "AceTimer-3.0", "AceBucket-3.0", "AceConsole-3.0", "LibSink-2.0")
-Omen.MINOR_VERSION = MINOR_VERSION
+Omen.MINOR_VERSION = 5
 Omen.LTC_MINOR = LibStub.minors["LibThreatClassic2"]
 
 Omen:SetDefaultModuleState(false)
@@ -294,13 +294,6 @@ function Omen:ShowConfig()
 	end
 end
 
-function Omen:ShowDropdown()
-	local dd = LibStub("LibDropdown-1.0")
-	if dd then
-		dd:OpenAce3Menu(self.configOptions)
-	end
-end
-
 do
 	local party = {}
 	local partySort = {}
@@ -351,10 +344,10 @@ do
 			if n then
 				if Threat:IsCompatible(n) then
 					if revs[n] and revs[n] < Threat.latestSeenRevision then
-						SendChatMessage(L["Your version of Omen/Threat is out of date. Please update from WAU or http://files.wowace.com/Omen/Omen.zip when possible."], "WHISPER", nil, n)
+						SendChatMessage(L["Your version of Omen/LibThreatClassic2 is out of date. Please update from Twitch or https://github.com/fjaros/OmenClassic when possible."], "WHISPER", nil, n)
 					end
 				else
-					SendChatMessage(L["Your version of Omen/Threat is out of date and is not compatible with the newest version. You should update from WAU or http://files.wowace.com/Omen/Omen.zip as soon as possible."], "WHISPER", nil, n)
+					SendChatMessage(L["Your version of Omen/LibThreatClassic2 is out of date and is not compatible with the newest version. You should update from Twitch or https://github.com/fjaros/OmenClassic as soon as possible."], "WHISPER", nil, n)
 				end
 			end
 		end	

@@ -1,5 +1,3 @@
-local MINOR_VERSION = tonumber(("$Revision: 66520 $"):match("%d+"))
-if MINOR_VERSION > Omen.MINOR_VERSION then Omen.MINOR_VERSION = MINOR_VERSION end
 
 local media = LibStub("LibSharedMedia-3.0")
 

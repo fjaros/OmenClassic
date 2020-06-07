@@ -166,8 +166,8 @@ L["Not compatible!"] = "Incompatible !"
 L["Issue threat clear"] = "RÀZ des menaces"
 L["Issue threat clear (requires party leader or raid assistant)"] = "Effectue une réinitialisation des menaces (nécessite d'être le chef du groupe ou assistant)."
 
-L["Your version of Omen/Threat is out of date. Please update from WAU or http://files.wowace.com/Omen/Omen.zip when possible."] = "Votre version de Omen/Threat est périmée. Veuillez vous mettre à jour via le WAU ou via http://files.wowace.com/Omen/Omen.zip quand vous aurez le temps."
-L["Your version of Omen/Threat is out of date and is not compatible with the newest version. You should update from WAU or http://files.wowace.com/Omen/Omen.zip as soon as possible."] = "Votre version de Omen/Threat est périmée et incompatible avec la version la plus récente. Veuillez vous mettre à jour via le WAU ou via http://files.wowace.com/Omen/Omen.zip le plus vite possible."
+L["Your version of Omen/LibThreatClassic2 is out of date. Please update from Twitch or https://github.com/fjaros/OmenClassic when possible."] = "Votre version de Omen/LibThreatClassic2 est périmée. Veuillez vous mettre à jour via le Twitch ou via https://github.com/fjaros/OmenClassic quand vous aurez le temps."
+L["Your version of Omen/LibThreatClassic2 is out of date and is not compatible with the newest version. You should update from Twitch or https://github.com/fjaros/OmenClassic as soon as possible."] = "Votre version de Omen/LibThreatClassic2 est périmée et incompatible avec la version la plus récente. Veuillez vous mettre à jour via le Twitch ou via https://github.com/fjaros/OmenClassic le plus vite possible."
 
 L["Whisper older clients informing them to update."] = "Prévenir les périmés"
 L["You must be the group leader or a group assistant to do this."] = "Vous devez être le chef du groupe ou assistant pour faire cela."
