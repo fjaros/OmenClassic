@@ -273,9 +273,6 @@ end
 -- Permanently blacklist any creature that dies. Unless it is resurrected, then whitelist it. Although I have no idea how/if that works.
 function Overview:COMBAT_LOG_EVENT_UNFILTERED()
 	local _, event, _, _, _, _, _, guid, name = CombatLogGetCurrentEventInfo()
-	if not string.sub(guid, 1, 9) == "Creature-" then
-		return
-	end
 	if event == "UNIT_DIED" then
 		GuidBlacklist:Add(guid)
 		self:WipeBarsForUnit(guid)

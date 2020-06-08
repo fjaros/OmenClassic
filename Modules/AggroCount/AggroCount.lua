@@ -222,9 +222,6 @@ end
 -- Permanently blacklist any creature that dies.
 function AggroCount:COMBAT_LOG_EVENT_UNFILTERED()
 	local _, event, _, _, _, _, _, guid, name = CombatLogGetCurrentEventInfo()
-	if not string.sub(guid, 1, 9) == "Creature-" then
-		return
-	end
 	if event == "UNIT_DIED" then
 		GuidBlacklist:Add(guid)
 		self:RemoveTank(guid)

@@ -9,7 +9,7 @@ local LDB = LibStub("LibDataBroker-1.1")
 local LDBIcon = LibStub("LibDBIcon-1.0")
 
 Omen = LibStub("AceAddon-3.0"):NewAddon("Omen", "AceEvent-3.0", "AceTimer-3.0", "AceBucket-3.0", "AceConsole-3.0", "LibSink-2.0")
-Omen.MINOR_VERSION = 6
+Omen.MINOR_VERSION = 7
 Omen.LTC_MINOR = LibStub.minors["LibThreatClassic2"]
 
 Omen:SetDefaultModuleState(false)
@@ -99,9 +99,6 @@ end
 
 function Omen:COMBAT_LOG_EVENT_UNFILTERED()
 	local _, event, _, _, _, _, _, guid = CombatLogGetCurrentEventInfo()
-	if not string.sub(guid, 1, 9) == "Creature-" then
-		return
-	end
 	if event == "UNIT_DIED" then
 		GuidBlacklist:Add(guid)
 	elseif event == "SPELL_RESURRECT" then

@@ -16,6 +16,11 @@ function GuidBlacklist:Add(guid)
 	if ReverseGuids[guid] then
 		return
 	end
+	
+	-- But really we should only blacklist creatures...
+	if not string.find(guid, 1, 9) == "Creature-" then
+		return
+	end
 
 	if db.i > MAX_TABLE_SIZE then
 		db.i = 1
